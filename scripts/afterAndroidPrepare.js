@@ -7,7 +7,7 @@ module.exports = function (context) {
   var configXml = new ConfigFile(context.opts.projectRoot, null, './config.xml');
 
   // find the meta-data node in AndroidManifest.xml
-  var androidPrjDir = path.join(context.opts.projectRoot, 'platforms/android');
+  var androidPrjDir = path.join(context.opts.projectRoot, 'platforms/android/app/src/main');
   var androidManifest = new ConfigFile(androidPrjDir, 'android', 'AndroidManifest.xml');
   var applicationNode = androidManifest.data.find('application');
 
@@ -25,7 +25,7 @@ module.exports = function (context) {
 
     // COPY ICON
     // create target path
-    var iconTargetPath = path.join(context.opts.projectRoot, 'platforms', 'android', 'res', 'drawable');
+    var iconTargetPath = path.join(context.opts.projectRoot, 'platforms', 'android', 'app' , 'src' , 'main' ,'res', 'drawable');
     try {
       fs.mkdirSync(iconTargetPath);
     } catch (err) {
@@ -40,25 +40,25 @@ module.exports = function (context) {
 
   // Copy gcm sender id from config.xml into AndroidManifest
   // detect parse.com or parse-server mode
-  var parseServerUrl = configXml.data.find('preference[@name="ParseServerUrl"]').get('value');
+  // var parseServerUrl = configXml.data.find('preference[@name="ParseServerUrl"]').get('value');
 
-  if (parseServerUrl.toUpperCase() !== "PARSE_DOT_COM") {
-    //opensource parse-server requires own GcmSenderId, so copy it from config.xml to AndroidManifest
-    var configXmlGcmIdNode = configXml.data.find('preference[@name="ParseGcmSenderId"]');
-    if (!configXmlGcmIdNode) {
-      console.error("ParseGcmSenderId is not set in config.xml");
-      return false;
-    }
+  // if (parseServerUrl.toUpperCase() !== "PARSE_DOT_COM") {
+  //   //opensource parse-server requires own GcmSenderId, so copy it from config.xml to AndroidManifest
+  //   var configXmlGcmIdNode = configXml.data.find('preference[@name="ParseGcmSenderId"]');
+  //   if (!configXmlGcmIdNode) {
+  //     console.error("ParseGcmSenderId is not set in config.xml");
+  //     return false;
+  //   }
 
-    var manifestGcmIdNode = applicationNode.find('meta-data[@android:name="com.parse.push.gcm_sender_id"]');
+  //   var manifestGcmIdNode = applicationNode.find('meta-data[@android:name="com.parse.push.gcm_sender_id"]');
 
-    if (!manifestGcmIdNode) {
-      manifestGcmIdNode = new ET.Element('meta-data', { 'android:name': 'com.parse.push.gcm_sender_id' });
-      applicationNode.append(manifestGcmIdNode);
-    }
+  //   if (!manifestGcmIdNode) {
+  //     manifestGcmIdNode = new ET.Element('meta-data', { 'android:name': 'com.parse.push.gcm_sender_id' });
+  //     applicationNode.append(manifestGcmIdNode);
+  //   }
 
-    manifestGcmIdNode.set('android:value', 'id:' + configXmlGcmIdNode.get('value'));
-  }
+  //   manifestGcmIdNode.set('android:value', 'id:' + configXmlGcmIdNode.get('value'));
+  // }
 
 
   androidManifest.save();
