@@ -9,10 +9,13 @@ import android.content.Intent;
 import android.app.PendingIntent;
 import android.app.Notification;
 import android.app.NotificationManager;
+import android.app.NotificationChannel;
+import android.graphics.Color;
 
 import github.taivo.parsepushplugin.ParsePushConfigReader;
 
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.TaskStackBuilder;
 
 import android.net.Uri;
 import android.util.Log;
@@ -23,12 +26,15 @@ import org.json.JSONException;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 
+import android.os.Bundle;
+
 import java.util.List;
 import java.util.Random;
 
 import android.content.SharedPreferences;
 
 import me.leolin.shortcutbadger.ShortcutBadger;
+
 
 public class ParsePushPluginReceiver extends ParsePushBroadcastReceiver {
   public static final String LOGTAG = "ParsePushPluginReceiver";
@@ -38,6 +44,7 @@ public class ParsePushPluginReceiver extends ParsePushBroadcastReceiver {
   private static int badgeCount = 0;
 
   private static final String KEY = "badge";
+
 
   @Override
   protected void onPushReceive(Context context, Intent intent) {
@@ -53,7 +60,7 @@ public class ParsePushPluginReceiver extends ParsePushBroadcastReceiver {
       // So first we check if the user has set the configuration to have multiple
       // notifications show in the tray (i.e. set <preference name="ParseMultiNotifications" value="true" />)
       ParsePushConfigReader config = new ParsePushConfigReader(context, null,
-          new String[] { "ParseMultiNotifications" });
+              new String[] { "ParseMultiNotifications" });
       String parseMulti = config.get("ParseMultiNotifications");
       if (parseMulti != null && !parseMulti.isEmpty() && parseMulti.equals("true")) {
         // If the user wants multiple notifications in the tray, then we let ParsePushBroadcastReceiver
@@ -62,13 +69,48 @@ public class ParsePushPluginReceiver extends ParsePushBroadcastReceiver {
       }
       else {
         // check if this is a silent notification
-        Notification notification = getNotification(context, intent);
+        NotificationCompat.Builder notification = getNotification(context, intent);
 
         if (notification != null) {
           // use tag + notification id=0 to limit the number of notifications in the tray
           // (older messages with the same tag and notification id will be replaced)
           NotificationManager notifManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-          notifManager.notify(getNotificationTag(context, intent), 0, notification);
+
+          if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+
+            String id = context.getPackageName();
+            CharSequence name = getAppName(context);
+//            String description = getNotification(context, intent).extras.getCharSequence(Notification.EXTRA_TEXT).toString();
+            String description = "test";
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel mChannel = new NotificationChannel(id, name, importance);
+
+            mChannel.setDescription(description);
+            mChannel.enableLights(true);
+            mChannel.setLightColor(Color.GREEN);
+            notifManager.createNotificationChannel(mChannel);
+
+            Intent activityIntent = new Intent(context, getActivity(context, intent));
+
+            PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, activityIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(context, id)
+                    .setSmallIcon(getSmallIconId(context, intent))
+                    .setBadgeIconType(getSmallIconId(context, intent))
+                    .setChannelId(id)
+                    .setContentTitle(name)
+                    .setAutoCancel(true)
+                    .setContentIntent(pendingIntent)
+                    .setNumber(1)
+                    .setColor(Color.GREEN)
+                    .setContentText(description)
+                    .setWhen(System.currentTimeMillis());
+
+            notifManager.notify((int)(System.currentTimeMillis()/1000), notificationBuilder.build());
+
+          }else{
+            notifManager.notify(getNotificationTag(context, intent), 0, notification.build());
+          }
+
         }
 
         //
@@ -85,16 +127,17 @@ public class ParsePushPluginReceiver extends ParsePushBroadcastReceiver {
 
   @Override
   protected void onPushOpen(Context context, Intent intent) {
+
     JSONObject pnData = getPushData(intent);
     resetCount(getNotificationTag(context, pnData));
 
     String uriString = pnData.optString("uri");
     Intent activityIntent = uriString.isEmpty() ? new Intent(context, getActivity(context, intent))
-        : new Intent(Intent.ACTION_VIEW, Uri.parse(uriString));
+            : new Intent(Intent.ACTION_VIEW, Uri.parse(uriString));
 
     activityIntent.putExtras(intent).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_NEW_TASK);
 
-    ParseAnalytics.trackAppOpened(intent);
+//    ParseAnalytics.trackAppOpened(intent);
 
     // allow a urlHash parameter for hash as well as query params.
     // This lets the app know what to do at coldstart by opening a PN.
@@ -110,9 +153,10 @@ public class ParsePushPluginReceiver extends ParsePushBroadcastReceiver {
     // relay the push notification data to the javascript in case the
     // app is already running when this push is open.
     ParsePushPlugin.jsCallback(getPushData(intent), "OPEN");
+
   }
 
-  @Override
+  /*@Override
   protected Notification getNotification(Context context, Intent intent) {
     //
     // Build a notification entry for the tray
@@ -140,9 +184,9 @@ public class ParsePushPluginReceiver extends ParsePushBroadcastReceiver {
     }
 
     PendingIntent contentIntent = PendingIntent.getBroadcast(context, contentIntentRequestCode, cIntent,
-        PendingIntent.FLAG_UPDATE_CURRENT);
+            PendingIntent.FLAG_UPDATE_CURRENT);
     PendingIntent deleteIntent = PendingIntent.getBroadcast(context, deleteIntentRequestCode, dIntent,
-        PendingIntent.FLAG_UPDATE_CURRENT);
+            PendingIntent.FLAG_UPDATE_CURRENT);
 
     NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
 
@@ -184,7 +228,7 @@ public class ParsePushPluginReceiver extends ParsePushBroadcastReceiver {
     }
 
     builder.setSmallIcon(getSmallIconId(context, intent)).setLargeIcon(getLargeIcon(context, intent))
-        .setNumber(nextCount(pnTag)).setContentIntent(contentIntent).setDeleteIntent(deleteIntent).setAutoCancel(true);
+            .setNumber(nextCount(pnTag)).setContentIntent(contentIntent).setDeleteIntent(deleteIntent).setAutoCancel(true);
 
     int colorId = context.getResources().getIdentifier(RESOURCE_PUSH_ICON_COLOR, "color", context.getPackageName());
     if (colorId != 0) {
@@ -196,9 +240,9 @@ public class ParsePushPluginReceiver extends ParsePushBroadcastReceiver {
     }
 
     return null;
-  }
+  }*/
 
-  private static JSONObject getPushData(Intent intent) {
+  protected JSONObject getPushData(Intent intent) {
     JSONObject pnData = null;
     try {
       pnData = new JSONObject(intent.getStringExtra(KEY_PUSH_DATA));
@@ -214,7 +258,7 @@ public class ParsePushPluginReceiver extends ParsePushBroadcastReceiver {
     return (String) appName;
   }
 
-  private static String getNotificationTag(Context context, Intent intent) {
+  private String getNotificationTag(Context context, Intent intent) {
     return getPushData(intent).optString("title", getAppName(context));
   }
 
@@ -241,17 +285,17 @@ public class ParsePushPluginReceiver extends ParsePushBroadcastReceiver {
   }
 
   /*
-    * Badge Counter methods. This will display badge counters on Samsung and Sony launchers.
-    */
+   * Badge Counter methods. This will display badge counters on Samsung and Sony launchers.
+   */
 
   /**
-  * Sets the badge of the app icon.
-  *
-  * @param args
-  * The new badge number
-  * @param ctx
-  * The application context
-  */
+   * Sets the badge of the app icon.
+   *
+   * @param args
+   * The new badge number
+   * @param ctx
+   * The application context
+   */
   public static void setBadge(int badgeCount, Context ctx) {
     int badge = badgeCount;
 
