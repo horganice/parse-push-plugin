@@ -37,14 +37,10 @@
       <config-file target="AndroidManifest.xml" parent="/manifest">
          <uses-permission android:name="android.permission.INTERNET" />
          <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-         <uses-permission android:name="android.permission.WAKE_LOCK" />
          <uses-permission android:name="android.permission.VIBRATE" />
-         <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
-
-         <permission android:protectionLevel="signature" android:name="${applicationId}.permission.C2D_MESSAGE" />
-         <uses-permission android:name="${applicationId}.permission.C2D_MESSAGE" />
       </config-file>
 
+      <framework src="com.google.firebase:firebase-core:16.0.3" />
       <framework src="com.github.parse-community.Parse-SDK-Android:parse:1.18.4" />
       <framework src="com.github.parse-community.Parse-SDK-Android:fcm:1.18.4" />
       <framework src="com.android.support:support-v4:+" />
