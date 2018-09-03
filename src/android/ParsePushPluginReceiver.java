@@ -48,10 +48,11 @@ public class ParsePushPluginReceiver extends ParsePushBroadcastReceiver {
 
   @Override
   protected void onPushReceive(Context context, Intent intent) {
+    JSONObject pushData = getPushData(intent);
     if (ParsePushPlugin.isInForeground()) {
       //
       // relay the push notification data to the javascript
-      ParsePushPlugin.jsCallback(getPushData(intent));
+      ParsePushPlugin.jsCallback(pushData);
     } else {
       //
       // only create entry for notification tray if plugin/application is
@@ -80,8 +81,7 @@ public class ParsePushPluginReceiver extends ParsePushBroadcastReceiver {
 
             String id = context.getPackageName();
             CharSequence name = getAppName(context);
-//            String description = getNotification(context, intent).extras.getCharSequence(Notification.EXTRA_TEXT).toString();
-            String description = "test";
+            String description = pushData.optString("alert", "Notification received.");
             int importance = NotificationManager.IMPORTANCE_DEFAULT;
             NotificationChannel mChannel = new NotificationChannel(id, name, importance);
 
@@ -120,7 +120,9 @@ public class ParsePushPluginReceiver extends ParsePushBroadcastReceiver {
         // to see if it works
         //
         intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
-        setResultCode(Activity.RESULT_OK);
+        if (isOrderedBroadcast()) {
+          setResultCode(Activity.RESULT_OK);
+        }
       }
     }
   }
