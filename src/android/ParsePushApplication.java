@@ -62,7 +62,7 @@ public class ParsePushApplication extends Application {
       if (config.getServerUrl().equalsIgnoreCase("PARSE_DOT_COM")) {
         //
         //initialize for use with legacy parse.com
-        // Parse.initialize(this, config.getAppId(), config.getClientKey());
+        Parse.initialize(this, config.getAppId(), config.getClientKey());
       } else {
         Log.d(LOGTAG, "ServerUrl " + config.getServerUrl());
         Log.d(LOGTAG, "NOTE: The trailing slash is important, e.g., https://mydomain.com:1337/parse/");
