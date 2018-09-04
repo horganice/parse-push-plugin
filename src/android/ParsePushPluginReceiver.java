@@ -78,7 +78,9 @@ public class ParsePushPluginReceiver extends ParsePushBroadcastReceiver {
         // to see if it works
         //
         intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
-        setResultCode(Activity.RESULT_OK);
+        if (isOrderedBroadcast()) {
+            setResultCode(Activity.RESULT_OK);
+        }
       }
     }
   }
