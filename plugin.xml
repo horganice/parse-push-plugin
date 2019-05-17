@@ -41,8 +41,8 @@
       </config-file>
 
       <framework src="com.google.firebase:firebase-core:16.0.3" />
-      <framework src="com.github.parse-community.Parse-SDK-Android:parse:1.18.4" />
-      <framework src="com.github.parse-community.Parse-SDK-Android:fcm:1.18.4" />
+      <framework src="com.github.parse-community.Parse-SDK-Android:parse:1.20.0" />
+      <framework src="com.github.parse-community.Parse-SDK-Android:fcm:1.20.0" />
       <framework src="com.android.support:support-v4:+" />
       <framework src="me.leolin:ShortcutBadger:1.1.17@aar" />
 
