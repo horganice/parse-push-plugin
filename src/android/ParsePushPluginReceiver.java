@@ -1,7 +1,7 @@
 package github.taivo.parsepushplugin;
 
 import com.parse.ParsePushBroadcastReceiver;
-import com.parse.ParseAnalytics;
+//import com.parse.ParseAnalytics;
 
 import android.app.Activity;
 import android.content.Context;
@@ -10,20 +10,22 @@ import android.app.PendingIntent;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.NotificationChannel;
-
+//
 import github.taivo.parsepushplugin.ParsePushConfigReader;
-
-import android.support.v4.app.NotificationCompat;
-
+//
+//import android.support.v4.app.NotificationCompat;
+import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
+//
 import android.net.Uri;
 import android.util.Log;
-
+//
 import org.json.JSONObject;
 import org.json.JSONException;
-
+//
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-
+//
 import java.util.List;
 import java.util.Random;
 
