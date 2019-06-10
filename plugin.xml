@@ -16,11 +16,6 @@
          </feature>
       </config-file>
       <config-file target="AndroidManifest.xml" parent="/manifest/application">
-         <service android:exported="true" android:name="com.parse.fcm.ParseFirebaseInstanceIdService">
-            <intent-filter>
-                <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
-            </intent-filter>
-        </service>
         <service android:name="com.parse.fcm.ParseFirebaseMessagingService" android:stopWithTask="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
